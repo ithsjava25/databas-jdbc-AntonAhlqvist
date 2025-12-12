@@ -23,10 +23,12 @@ public class Main {
      * <p>
      * 1) Lista alla månfärder (namn på rymdfarkoster)
      * 2) Hämta månfärd efter mission_id
+     * 3) Räkna månfärder för ett visst år
      * 0) Avsluta programmet
      * <p>
      * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning efter mission_id.
      * Valet "Hämta månfärd efter mission_id" skriver ut information om den specifika månfärden om den finns.
+     * Valet "Räkna månfärder för ett visst år" skriver ut antalet månfärder för det angivna året.
      * Valet "Avsluta" bryter menyn och avslutar metoden.
      * Ogiltiga val hanteras med ett felmeddelande.
      */
@@ -75,6 +77,7 @@ public class Main {
             while (true) {
                 System.out.println("1) List moon missions");
                 System.out.println("2) Get mission by ID");
+                System.out.println("3) Count missions for year");
                 System.out.println("0) Exit");
 
                 String choice = scanner.nextLine().trim();
@@ -108,6 +111,24 @@ public class Main {
                             }
                         }
                     }
+
+                    case "3" -> {
+                        System.out.println("Year:");
+                        String yearStr = scanner.nextLine().trim();
+                        System.out.println(yearStr);
+                        int year = Integer.parseInt(scanner.nextLine().trim());
+
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                "SELECT COUNT(*) FROM moon_mission WHERE year = ?"
+                        )) {
+                            ps.setInt(1, year);
+                            ResultSet rs = ps.executeQuery();
+                            if (rs.next()) {
+                                System.out.println(rs.getInt(1));
+                            }
+                        }
+                    }
+
                     default -> System.out.println("Invalid option");
                 }
             }
