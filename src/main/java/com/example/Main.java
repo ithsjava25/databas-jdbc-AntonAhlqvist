@@ -1,9 +1,8 @@
 package com.example;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Main {
 
@@ -14,6 +13,23 @@ public class Main {
         new Main().run();
     }
 
+    /**
+     * Kör huvudflödet för applikationen, inklusive inloggning och enkel meny för att lista månfärder.
+     * <p>
+     * Vad som har lagts till i denna version:
+     * <p>
+     * Skapar en Scanner för användarinput.
+     * Frågar användaren efter användarnamn och lösenord och kontrollerar dessa mot databasen.
+     * Om inloggning lyckas skrivs "Login successful!" ut, annars avslutas programmet med felmeddelande.
+     * Efter lyckad inloggning visas en enkel meny med två alternativ:
+     * <p>
+     * Lista alla månfärder (namn på rymdfarkoster).
+     * Avsluta programmet.
+     * <p>
+     * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning eftermission_id.
+     * Valet "Avsluta" bryter menyn och avslutar metoden.
+     * Ogiltiga val hanteras med ett felmeddelande.
+     */
     public void run() {
         // Resolve DB settings with precedence: System properties -> Environment variables
         String jdbcUrl = resolveConfig("APP_JDBC_URL", "APP_JDBC_URL");
@@ -27,10 +43,59 @@ public class Main {
         }
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, dbUser, dbPass)) {
+
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println("Username:");
+            String username = scanner.nextLine().trim();
+
+            System.out.println("Password:");
+            String password = scanner.nextLine().trim();
+
+            boolean authenticated = false;
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "SELECT COUNT(*) FROM account WHERE name = ? AND password = ?"
+            )) {
+                ps.setString(1, username);
+                ps.setString(2, password);
+
+                ResultSet rs = ps.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    authenticated = true;
+                }
+            }
+
+            if (!authenticated) {
+                System.out.println("Invalid username or password");
+                return;
+            }
+
+            System.out.println("Login successful!");
+
+            while (true) {
+                System.out.println("1) List moon missions");
+                System.out.println("0) Exit");
+
+                String choice = scanner.nextLine().trim();
+                if ("0".equals(choice)) {
+                    break;
+                } else if ("1".equals(choice)) {
+                    try (PreparedStatement ps = connection.prepareStatement(
+                            "SELECT spacecraft FROM moon_mission ORDER BY mission_id"
+                    )) {
+                        ResultSet rs = ps.executeQuery();
+                        while (rs.next()) {
+                            System.out.println(rs.getString("spacecraft"));
+                        }
+                    }
+                } else {
+                    System.out.println("Invalid option");
+                }
+            }
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        //Todo: Starting point for your code
     }
 
     /**
