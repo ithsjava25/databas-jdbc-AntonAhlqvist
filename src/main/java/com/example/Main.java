@@ -16,17 +16,17 @@ public class Main {
     /**
      * Kör huvudflödet för applikationen, inklusive inloggning och enkel meny för att lista månfärder.
      * <p>
-     * Vad som har lagts till i denna version:
-     * <p>
      * Skapar en Scanner för användarinput.
      * Frågar användaren efter användarnamn och lösenord och kontrollerar dessa mot databasen.
      * Om inloggning lyckas skrivs "Login successful!" ut, annars avslutas programmet med felmeddelande.
-     * Efter lyckad inloggning visas en enkel meny med två alternativ:
+     * Efter lyckad inloggning visas en enkel meny med följande alternativ:
      * <p>
-     * Lista alla månfärder (namn på rymdfarkoster).
-     * Avsluta programmet.
+     * 1) Lista alla månfärder (namn på rymdfarkoster)
+     * 2) Hämta månfärd efter mission_id
+     * 0) Avsluta programmet
      * <p>
-     * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning eftermission_id.
+     * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning efter mission_id.
+     * Valet "Hämta månfärd efter mission_id" skriver ut information om den specifika månfärden om den finns.
      * Valet "Avsluta" bryter menyn och avslutar metoden.
      * Ogiltiga val hanteras med ett felmeddelande.
      */
@@ -74,22 +74,41 @@ public class Main {
 
             while (true) {
                 System.out.println("1) List moon missions");
+                System.out.println("2) Get mission by ID");
                 System.out.println("0) Exit");
 
                 String choice = scanner.nextLine().trim();
-                if ("0".equals(choice)) {
-                    break;
-                } else if ("1".equals(choice)) {
-                    try (PreparedStatement ps = connection.prepareStatement(
-                            "SELECT spacecraft FROM moon_mission ORDER BY mission_id"
-                    )) {
-                        ResultSet rs = ps.executeQuery();
-                        while (rs.next()) {
-                            System.out.println(rs.getString("spacecraft"));
+
+                switch (choice) {
+                    case "0" -> { break; }
+                    case "1" -> {
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                "SELECT spacecraft FROM moon_mission ORDER BY mission_id"
+                        )) {
+                            ResultSet rs = ps.executeQuery();
+                            while (rs.next()) {
+                                System.out.println(rs.getString("spacecraft"));
+                            }
                         }
                     }
-                } else {
-                    System.out.println("Invalid option");
+                    case "2" -> {
+                        System.out.println("Mission ID:");
+                        int id = Integer.parseInt(scanner.nextLine().trim());
+
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                "SELECT * FROM moon_mission WHERE mission_id = ?"
+                        )) {
+                            ps.setInt(1, id);
+                            ResultSet rs = ps.executeQuery();
+                            if (rs.next()) {
+
+                                System.out.println(rs.getString("spacecraft"));
+                            } else {
+                                System.out.println("Mission not found");
+                            }
+                        }
+                    }
+                    default -> System.out.println("Invalid option");
                 }
             }
 
