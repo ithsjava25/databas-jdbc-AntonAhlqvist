@@ -14,8 +14,8 @@ public class Main {
     }
 
     /**
-     * Kör huvudflödet för applikationen, inklusive inloggning och enkel meny för att lista månfärder
-     * och skapa nya konton.
+     * Kör huvudflödet för applikationen, inklusive inloggning och enkel meny för att lista månfärder,
+     * skapa nya konton och ta bort konton.
      * <p>
      * Skapar en Scanner för användarinput.
      * Frågar användaren efter användarnamn och lösenord och kontrollerar dessa mot databasen.
@@ -27,6 +27,7 @@ public class Main {
      * 3) Räkna månfärder för ett visst år
      * 4) Skapa ett nytt konto (förnamn, efternamn, SSN, lösenord)
      * 5) Uppdatera lösenord för ett konto via user_id
+     * 6) Ta bort ett konto via user_id
      * 0) Avsluta programmet
      * <p>
      * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning efter mission_id.
@@ -34,6 +35,7 @@ public class Main {
      * Valet "Räkna månfärder för ett visst år" skriver ut antalet månfärder för det angivna året.
      * Valet "Skapa nytt konto" frågar efter namn, SSN och lösenord och sparar informationen i tabellen "account".
      * Valet "Uppdatera lösenord" frågar efter user_id och nytt lösenord och uppdaterar kontots lösenord i tabellen "account".
+     * Valet "Ta bort konto" frågar efter user_id och tar bort kontot från tabellen "account".
      * Valet "Avsluta" bryter menyn och avslutar metoden.
      * Ogiltiga val hanteras med ett felmeddelande.
      */
@@ -85,6 +87,7 @@ public class Main {
                 System.out.println("3) Count missions for year");
                 System.out.println("4) Create new account");
                 System.out.println("5) Update account password");
+                System.out.println("6) Delete account");
                 System.out.println("0) Exit");
 
                 String choice = scanner.nextLine().trim();
@@ -121,17 +124,18 @@ public class Main {
 
                     case "3" -> {
                         System.out.println("Year:");
-                        String yearStr = scanner.nextLine().trim();
-                        System.out.println(yearStr);
                         int year = Integer.parseInt(scanner.nextLine().trim());
 
                         try (PreparedStatement ps = connection.prepareStatement(
-                                "SELECT COUNT(*) FROM moon_mission WHERE year = ?"
+                                "SELECT COUNT(*) FROM moon_mission WHERE YEAR(launch_date) = ?"
                         )) {
                             ps.setInt(1, year);
                             ResultSet rs = ps.executeQuery();
                             if (rs.next()) {
-                                System.out.println(rs.getInt(1));
+                                int count = rs.getInt(1);
+                                System.out.println(year + " missions: " + count);
+                            } else {
+                                System.out.println(year + " missions: 0");
                             }
                         }
                     }
@@ -173,6 +177,23 @@ public class Main {
                             int rows = ps.executeUpdate();
                             if (rows > 0) {
                                 System.out.println("Password updated");
+                            } else {
+                                System.out.println("No account found with that ID");
+                            }
+                        }
+                    }
+
+                    case "6" -> {
+                        System.out.println("User ID of account to delete:");
+                        long userId = Long.parseLong(scanner.nextLine().trim());
+
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                "DELETE FROM account WHERE user_id = ?"
+                        )) {
+                            ps.setLong(1, userId);
+                            int rows = ps.executeUpdate();
+                            if (rows > 0) {
+                                System.out.println("Account deleted");
                             } else {
                                 System.out.println("No account found with that ID");
                             }
