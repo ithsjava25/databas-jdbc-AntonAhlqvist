@@ -14,7 +14,8 @@ public class Main {
     }
 
     /**
-     * Kör huvudflödet för applikationen, inklusive inloggning och enkel meny för att lista månfärder.
+     * Kör huvudflödet för applikationen, inklusive inloggning och enkel meny för att lista månfärder
+     * och skapa nya konton.
      * <p>
      * Skapar en Scanner för användarinput.
      * Frågar användaren efter användarnamn och lösenord och kontrollerar dessa mot databasen.
@@ -24,11 +25,13 @@ public class Main {
      * 1) Lista alla månfärder (namn på rymdfarkoster)
      * 2) Hämta månfärd efter mission_id
      * 3) Räkna månfärder för ett visst år
+     * 4) Skapa ett nytt konto (förnamn, efternamn, SSN, lösenord)
      * 0) Avsluta programmet
      * <p>
      * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning efter mission_id.
      * Valet "Hämta månfärd efter mission_id" skriver ut information om den specifika månfärden om den finns.
      * Valet "Räkna månfärder för ett visst år" skriver ut antalet månfärder för det angivna året.
+     * Valet "Skapa nytt konto" frågar efter namn, SSN och lösenord och sparar informationen i tabellen "account".
      * Valet "Avsluta" bryter menyn och avslutar metoden.
      * Ogiltiga val hanteras med ett felmeddelande.
      */
@@ -127,6 +130,29 @@ public class Main {
                                 System.out.println(rs.getInt(1));
                             }
                         }
+                    }
+
+                    case "4" -> {
+                        System.out.println("First name:");
+                        String firstName = scanner.nextLine().trim();
+                        System.out.println("Last name:");
+                        String lastName = scanner.nextLine().trim();
+                        System.out.println("SSN:");
+                        String ssn = scanner.nextLine().trim();
+                        System.out.println("Password:");
+                        String accountPassword = scanner.nextLine().trim();
+
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                "INSERT INTO account(password, first_name, last_name, ssn) VALUES (?, ?, ?, ?)"
+                        )) {
+                            ps.setString(1, accountPassword);
+                            ps.setString(2, firstName);
+                            ps.setString(3, lastName);
+                            ps.setString(4, ssn);
+                            ps.executeUpdate();
+                        }
+
+                        System.out.println("Account created");
                     }
 
                     default -> System.out.println("Invalid option");
