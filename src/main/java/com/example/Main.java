@@ -26,12 +26,14 @@ public class Main {
      * 2) Hämta månfärd efter mission_id
      * 3) Räkna månfärder för ett visst år
      * 4) Skapa ett nytt konto (förnamn, efternamn, SSN, lösenord)
+     * 5) Uppdatera lösenord för ett konto via user_id
      * 0) Avsluta programmet
      * <p>
      * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning efter mission_id.
      * Valet "Hämta månfärd efter mission_id" skriver ut information om den specifika månfärden om den finns.
      * Valet "Räkna månfärder för ett visst år" skriver ut antalet månfärder för det angivna året.
      * Valet "Skapa nytt konto" frågar efter namn, SSN och lösenord och sparar informationen i tabellen "account".
+     * Valet "Uppdatera lösenord" frågar efter user_id och nytt lösenord och uppdaterar kontots lösenord i tabellen "account".
      * Valet "Avsluta" bryter menyn och avslutar metoden.
      * Ogiltiga val hanteras med ett felmeddelande.
      */
@@ -81,6 +83,8 @@ public class Main {
                 System.out.println("1) List moon missions");
                 System.out.println("2) Get mission by ID");
                 System.out.println("3) Count missions for year");
+                System.out.println("4) Create new account");
+                System.out.println("5) Update account password");
                 System.out.println("0) Exit");
 
                 String choice = scanner.nextLine().trim();
@@ -153,6 +157,26 @@ public class Main {
                         }
 
                         System.out.println("Account created");
+                    }
+
+                    case "5" -> {
+                        System.out.println("User ID of account to update:");
+                        long userId = Long.parseLong(scanner.nextLine().trim());
+                        System.out.println("New password:");
+                        String newPassword = scanner.nextLine().trim();
+
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                "UPDATE account SET password = ? WHERE user_id = ?"
+                        )) {
+                            ps.setString(1, newPassword);
+                            ps.setLong(2, userId);
+                            int rows = ps.executeUpdate();
+                            if (rows > 0) {
+                                System.out.println("Password updated");
+                            } else {
+                                System.out.println("No account found with that ID");
+                            }
+                        }
                     }
 
                     default -> System.out.println("Invalid option");
