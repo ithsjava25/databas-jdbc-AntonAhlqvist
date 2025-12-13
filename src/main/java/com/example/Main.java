@@ -93,7 +93,9 @@ public class Main {
                 String choice = scanner.nextLine().trim();
 
                 switch (choice) {
-                    case "0" -> { break; }
+                    case "0" -> {
+                        return;
+                    }
                     case "1" -> {
                         try (PreparedStatement ps = connection.prepareStatement(
                                 "SELECT spacecraft FROM moon_mission ORDER BY mission_id"
@@ -106,10 +108,15 @@ public class Main {
                     }
                     case "2" -> {
                         System.out.println("Mission ID:");
-                        int id = Integer.parseInt(scanner.nextLine().trim());
-
+                        int id;
+                        try {
+                            id = Integer.parseInt(scanner.nextLine().trim());
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid mission ID");
+                            break;
+                        }
                         try (PreparedStatement ps = connection.prepareStatement(
-                                "SELECT * FROM moon_mission WHERE mission_id = ?"
+                                "SELECT spacecraft FROM moon_mission WHERE mission_id = ?"
                         )) {
                             ps.setInt(1, id);
                             ResultSet rs = ps.executeQuery();
@@ -124,19 +131,21 @@ public class Main {
 
                     case "3" -> {
                         System.out.println("Year:");
-                        int year = Integer.parseInt(scanner.nextLine().trim());
-
+                        int year;
+                        try {
+                            year = Integer.parseInt(scanner.nextLine().trim());
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid year");
+                            break;
+                        }
                         try (PreparedStatement ps = connection.prepareStatement(
                                 "SELECT COUNT(*) FROM moon_mission WHERE YEAR(launch_date) = ?"
                         )) {
                             ps.setInt(1, year);
                             ResultSet rs = ps.executeQuery();
-                            if (rs.next()) {
+                            rs.next();
                                 int count = rs.getInt(1);
                                 System.out.println(year + " missions: " + count);
-                            } else {
-                                System.out.println(year + " missions: 0");
-                            }
                         }
                     }
 
