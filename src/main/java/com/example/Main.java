@@ -1,8 +1,9 @@
 package com.example;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Scanner;
 
 public class Main {
 
@@ -216,6 +217,7 @@ public class Main {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        //Todo: Starting point for your code
     }
 
     /**
