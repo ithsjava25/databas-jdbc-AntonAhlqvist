@@ -23,30 +23,44 @@ public class Main {
      * Efter lyckad inloggning visas en enkel meny med följande alternativ:
      * <p>
      * 1) Lista alla månfärder (namn på rymdfarkoster)
-     * 2) Hämta månfärd efter mission_id
-     * 3) Räkna månfärder för ett visst år
-     * 4) Skapa ett nytt konto (förnamn, efternamn, SSN, lösenord)
-     * 5) Uppdatera lösenord för ett konto via user_id
-     * 6) Ta bort ett konto via user_id
-     * 0) Avsluta programmet
+     * Hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning
+     * efter mission_id. Användaren får en snabb översikt över vilka månfärder som finns
+     * registrerade i databasen.
      * <p>
-     * Valet "Lista månfärder" hämtar alla rymdfarkoster från tabellen "moon_mission" och skriver ut dem i ordning efter mission_id.
-     * Valet "Hämta månfärd efter mission_id" skriver ut information om den specifika månfärden om den finns.
-     * Valet "Räkna månfärder för ett visst år" skriver ut antalet månfärder för det angivna året.
-     * Valet "Skapa nytt konto" frågar efter namn, SSN och lösenord och sparar informationen i tabellen "account".
-     * Valet "Uppdatera lösenord" frågar efter user_id och nytt lösenord och uppdaterar kontots lösenord i tabellen "account".
-     * Valet "Ta bort konto" frågar efter user_id och tar bort kontot från tabellen "account".
-     * Valet "Avsluta" bryter menyn och avslutar metoden.
-     * Ogiltiga val hanteras med ett felmeddelande.
+     * 2) Hämta månfärd efter mission_id
+     * Frågar efter ett specifikt mission_id och hämtar information om månfärden med det ID:t.
+     * Om månfärden finns skrivs namnet på rymdfarkosten ut, annars meddelas att månfärden inte
+     * hittades.
+     * <p>
+     * 3) Räkna månfärder för ett visst år
+     * Frågar användaren efter ett år och räknar antalet månfärder som har launch_date inom
+     * det året. Resultatet visar hur många månfärder som genomfördes under det valda året.
+     * <p>
+     * 4) Skapa ett nytt konto (förnamn, efternamn, SSN, lösenord)
+     * Frågar efter användarens förnamn, efternamn, SSN och lösenord och skapar ett nytt konto
+     * i tabellen "account". Detta gör det möjligt för nya användare att registrera sig.
+     * <p>
+     * 5) Uppdatera lösenord för ett konto via user_id
+     * Frågar efter user_id för kontot som ska uppdateras samt det nya lösenordet. Uppdaterar
+     * kontots lösenord i databasen om kontot finns, annars meddelas att inget konto med
+     * angivet ID hittades.
+     * <p>
+     * 6) Ta bort ett konto via user_id
+     * Frågar efter user_id för kontot som ska tas bort och tar bort kontot från tabellen
+     * "account". Om kontot inte finns meddelas användaren om att inget konto hittades.
+     * <p>
+     * 0) Avsluta programmet
+     * Bryter menyn och avslutar metoden.
+     * <p>
+     * Ogiltiga val hanteras med felmeddelanden.
      */
     public void run() {
-        // Resolve DB settings with precedence: System properties -> Environment variables
         String jdbcUrl = resolveConfig("APP_JDBC_URL", "APP_JDBC_URL");
         String dbUser = resolveConfig("APP_DB_USER", "APP_DB_USER");
         String dbPass = resolveConfig("APP_DB_PASS", "APP_DB_PASS");
 
         if (jdbcUrl == null || dbUser == null || dbPass == null) {
-            throw new IllegalStateException(
+        throw new IllegalStateException(
                     "Missing DB configuration. Provide APP_JDBC_URL, APP_DB_USER, APP_DB_PASS " +
                             "as system properties (-Dkey=value) or environment variables.");
         }
@@ -144,8 +158,8 @@ public class Main {
                             ps.setInt(1, year);
                             ResultSet rs = ps.executeQuery();
                             rs.next();
-                                int count = rs.getInt(1);
-                                System.out.println(year + " missions: " + count);
+                            int count = rs.getInt(1);
+                            System.out.println(year + " missions: " + count);
                         }
                     }
 
@@ -226,11 +240,11 @@ public class Main {
      * @return {@code true} if the application is in development mode; {@code false} otherwise
      */
     private static boolean isDevMode(String[] args) {
-        if (Boolean.getBoolean("devMode"))  //Add VM option -DdevMode=true
+        if (Boolean.getBoolean("devMode"))
             return true;
-        if ("true".equalsIgnoreCase(System.getenv("DEV_MODE")))  //Environment variable DEV_MODE=true
+        if ("true".equalsIgnoreCase(System.getenv("DEV_MODE")))
             return true;
-        return Arrays.asList(args).contains("--dev"); //Argument --dev
+        return Arrays.asList(args).contains("--dev");
     }
 
     /**
